@@ -26,7 +26,7 @@ func LoadConfig() Config {
 func getEnv(key, defaultValue string) string {
     value := os.Getenv(key)
     
-    if value = "" {
+    if value == "" {
         return defaultValue
     }
 
