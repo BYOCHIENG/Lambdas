@@ -1,0 +1,8 @@
+*.exe
+*.tar
+
+
+/prod
+/production
+
+*.sum
