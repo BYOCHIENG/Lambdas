@@ -17,7 +17,7 @@ import (
     // AWS Packages
     "github.com/aws/aws-lambda-go/events"
     "github.com/aws/aws-lambda-go/lambda"
-    "github.com/aws/aws-sdk-go-v2/aws"
+    // "github.com/aws/aws-sdk-go-v2/aws"
     awsConfig "github.com/aws/aws-sdk-go-v2/config"
     "github.com/aws/aws-sdk-go-v2/service/ses"
 )
@@ -90,7 +90,7 @@ func HandleRequest(ctx context.Context, request events.APIGatewayProxyRequest) (
         Email:      data.Email,
         Subject:    data.Subject,
         Message:    data.Message,
-        Timestamp:  time.now().Format(time.RFC339) // Year - Month - Day - Hour - Min - Sec
+        Timestamp:  time.Now().Format(time.RFC3339), // Year - Month - Day - Hour - Min - Sec
     }
 
     // Send mail
@@ -160,7 +160,7 @@ func sendAlertEmail(ctx context.Context, cfg config.Config, err error, data inte
     }
 
     emailClient := emailer.NewSESClient(sesClient)
-    if alertErr := emailClient.SendAlertEmail(ctx, cfg.FromEmail, cfg.AlertEmails, err, data)); alertErr != nil {
+    if alertErr := emailClient.SendAlertEmail(ctx, cfg.FromEmail, cfg.AlertEmails, err, data); alertErr != nil {
         log.Printf("Error sending alert email: %v", alertErr)
     }
 }
@@ -168,7 +168,7 @@ func sendAlertEmail(ctx context.Context, cfg config.Config, err error, data inte
 func createErrorResponse(statusCode int, message string, err error, headers map[string]string) events.APIGatewayProxyResponse {
     errMsg := message
     if err != nil && strings.Contains(message, "%") {
-        errMsg = fmt.Springf(message,err.Error())
+        errMsg = fmt.Sprintf(message,err.Error())
     }
 
     responseBody, _ := json.Marshal(ResponseBody {
@@ -186,6 +186,7 @@ func defaultString(val, defaultVal string) string {
     if val == "" {
         return defaultVal
     }
+    return val
 }
 
 func main() {
