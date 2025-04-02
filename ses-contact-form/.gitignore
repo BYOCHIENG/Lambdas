@@ -1,6 +1,6 @@
 *.exe
 *.tar
-
+*.exec
 
 /prod
 /production
