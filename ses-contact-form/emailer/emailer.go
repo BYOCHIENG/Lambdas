@@ -9,7 +9,7 @@ import (
     "runtime"
     "text/template"
     "time"
-
+    "strings"
     // AWS Packages
 
     "github.com/aws/aws-sdk-go-v2/service/ses"
@@ -17,7 +17,7 @@ import (
 )
 
 type EmailSender interface {
-    SendEmail(ctx context.Context, params *ses.SendEmailInput) (*ses.SendEmailOutput, error)
+    SendEmail(ctx context.Context, params *ses.SendEmailInput, optFns ...func(*ses.Options)) (*ses.SendEmailOutput, error)
 }
 
 type SESClient struct {
@@ -58,12 +58,12 @@ func (s *SESClient) SendContactEmail(ctx context.Context, toEmail, fromEmail str
         Destination: &types.Destination {
             ToAddresses: []string{toEmail},
         },
-        Message: &types.Messages {
+        Message: &types.Message {
             Body: &types.Body {
                 Text: &types.Content {
                     Data: &textContent,
                 },
-                HTML: &types.Content {
+                Html: &types.Content {
                     Data: &htmlContent,
                 },
             },
