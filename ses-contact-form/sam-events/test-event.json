@@ -1,0 +1,28 @@
+{
+  "body": "{\"name\":\"Test User\",\"email\":\"test@example.com\",\"subject\":\"Test Contact Form\",\"message\":\"This is a test message sent from SAM CLI.\"}",
+  "resource": "/{proxy+}",
+  "path": "/path/to/resource",
+  "httpMethod": "POST",
+  "isBase64Encoded": false,
+  "queryStringParameters": {},
+  "multiValueQueryStringParameters": {},
+  "pathParameters": {},
+  "stageVariables": {},
+  "headers": {
+    "Accept": "application/json",
+    "Content-Type": "application/json"
+  },
+  "multiValueHeaders": {},
+  "requestContext": {
+    "accountId": "123456789012",
+    "resourceId": "123456",
+    "stage": "test",
+    "requestId": "test-id",
+    "identity": {
+      "sourceIp": "127.0.0.1"
+    },
+    "resourcePath": "/{proxy+}",
+    "httpMethod": "POST",
+    "apiId": "1234567890"
+  }
+}

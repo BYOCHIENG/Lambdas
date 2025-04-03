@@ -1,0 +1,26 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: SAM template for SES Contact Form Lambda
+
+Resources:
+  ContactFormFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: ./
+      Handler: bootstrap
+      Runtime: provided.al2023
+      Architectures:
+        - x86_64
+      Timeout: 30
+      Environment:
+        Variables:
+          TO_EMAIL: test@example.com
+          FROM_EMAIL: noreply@example.com
+          ALERT_EMAILS: admin@example.com
+      Policies:
+        - Statement:
+          - Effect: Allow
+            Action:
+              - ses:SendEmail
+              - ses:SendRawEmail
+            Resource: '*'
