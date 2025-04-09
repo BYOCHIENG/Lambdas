@@ -1,5 +1,5 @@
-{
-  "body": "{\"name\":\"Test User\",\"email\":\"test@example.com\",\"subject\":\"Test Contact Form\",\"message\":\"This is a test message sent from SAM CLI.\"}",
+{ 
+  "body": "{\"name\":\"Test Client\",\"email\":\"test@example.com\",\"subject\":\"Test Contact Form\"}", 
   "resource": "/{proxy+}",
   "path": "/path/to/resource",
   "httpMethod": "POST",
