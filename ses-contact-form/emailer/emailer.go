@@ -1,91 +1,91 @@
 package emailer
 
 import (
-    "context"
-    "errors"
-    "fmt"
-    "io/ioutil"
-    "path/filepath"
-    "runtime"
-    "text/template"
-    "time"
-    "strings"
-    // AWS Packages
+	"context"
+	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
+	"strings"
+	"text/template"
+	"time"
 
-    "github.com/aws/aws-sdk-go-v2/service/ses"
-    "github.com/aws/aws-sdk-go-v2/service/ses/types"
+	// AWS Packages
+	"github.com/aws/aws-sdk-go-v2/service/ses"
+	"github.com/aws/aws-sdk-go-v2/service/ses/types"
 )
 
 type EmailSender interface {
-    SendEmail(ctx context.Context, params *ses.SendEmailInput, optFns ...func(*ses.Options)) (*ses.SendEmailOutput, error)
+	SendEmail(ctx context.Context, params *ses.SendEmailInput, optFns ...func(*ses.Options)) (*ses.SendEmailOutput, error)
 }
 
 type SESClient struct {
-    Client EmailSender
+	Client EmailSender
 }
 
 type EmailData struct {
-    Name        string
-    Email       string
-    Subject     string
-    Message     string
-    Timestamp   string
+	Name      string
+	Email     string
+	Subject   string
+	Message   string
+	Timestamp string
 }
 
 func NewSESClient(client EmailSender) *SESClient {
-    return &SESClient {
-        Client: client,
-    }
+	return &SESClient{
+		Client: client,
+	}
 }
 
 // Sends a contact from email
 func (s *SESClient) SendContactEmail(ctx context.Context, toEmail, fromEmail string, data EmailData) error {
-    // Set timestamp if it hasnt be intializaed
-    if data.Timestamp == "" {
-        data.Timestamp = time.Now().Format(time.RFC3339) // Y/M/D H/M/S
-    }
+	// Set timestamp if it hasnt be intializaed
+	if data.Timestamp == "" {
+		data.Timestamp = time.Now().Format(time.RFC3339) // Y/M/D H/M/S
+	}
 
-    textContent := s.formatTextEmail(data)
+	textContent := s.formatTextEmail(data)
 
-    htmlContent, err := s.formatHTMLEmail(data)
-    if err != nil {
-        return fmt.Errorf("Error formatting HTML email: %w", err)
-    }
+	htmlContent, err := s.formatHTMLEmail(data)
+	if err != nil {
+		return fmt.Errorf("error formatting HTML email: %w", err)
+	}
 
-    // SES Input
+	// SES Input
 
-    input := &ses.SendEmailInput {
-        Destination: &types.Destination {
-            ToAddresses: []string{toEmail},
-        },
-        Message: &types.Message {
-            Body: &types.Body {
-                Text: &types.Content {
-                    Data: &textContent,
-                },
-                Html: &types.Content {
-                    Data: &htmlContent,
-                },
-            },
-            Subject: &types.Content {
-                Data: &data.Subject,
-            },
-        },
-        Source: &fromEmail,
-    }
-    
-    _, err = s.Client.SendEmail(ctx, input)
-    
-    if err != nil {
-        return fmt.Errorf("Error sending email: %w", err)
-    }
+	input := &ses.SendEmailInput{
+		Destination: &types.Destination{
+			ToAddresses: []string{toEmail},
+		},
+		Message: &types.Message{
+			Body: &types.Body{
+				Text: &types.Content{
+					Data: &textContent,
+				},
+				Html: &types.Content{
+					Data: &htmlContent,
+				},
+			},
+			Subject: &types.Content{
+				Data: &data.Subject,
+			},
+		},
+		Source: &fromEmail,
+	}
 
-    return nil
+	_, err = s.Client.SendEmail(ctx, input)
+
+	if err != nil {
+		return fmt.Errorf("error sending email: %w", err)
+	}
+
+	return nil
 }
 
-    // Send Alert Email 
+// Send Alert Email
 
-    func (s *SESClient) SendAlertEmail(ctx context.Context, fromEmail string, toEmails []string, err error, originalData interface{}) error {
+func (s *SESClient) SendAlertEmail(ctx context.Context, fromEmail string, toEmails []string, err error, originalData interface{}) error {
 	if err == nil {
 		return errors.New("no error provided for alert email")
 	}
@@ -129,10 +129,10 @@ func (s *SESClient) SendContactEmail(ctx context.Context, toEmail, fromEmail str
 	}
 
 	return nil
-    }
+}
 
 // Format text version of the email
-    func (s *SESClient) formatTextEmail(data EmailData) string {
+func (s *SESClient) formatTextEmail(data EmailData) string {
 	return fmt.Sprintf(`
             NEW MESSAGE
 
@@ -146,10 +146,10 @@ func (s *SESClient) SendContactEmail(ctx context.Context, toEmail, fromEmail str
 
             Timestamp: %s
         `, data.Name, data.Email, data.Subject, data.Message, data.Timestamp)
-    }
+}
 
 // Format HTML
-    func (s *SESClient) formatHTMLEmail(data EmailData) (string, error) {
+func (s *SESClient) formatHTMLEmail(data EmailData) (string, error) {
 	// Get the location of the email template
 	_, filename, _, ok := runtime.Caller(0)
 	if !ok {
@@ -161,7 +161,7 @@ func (s *SESClient) SendContactEmail(ctx context.Context, toEmail, fromEmail str
 	templatePath := filepath.Join(templateDir, "email.html")
 
 	// Read the template file
-	templateContent, err := ioutil.ReadFile(templatePath)
+	templateContent, err := os.ReadFile(templatePath)
 	if err != nil {
 		// Fallback to a simple inline template if file can't be read
 		return s.formatFallbackHTMLEmail(data), nil
@@ -181,10 +181,10 @@ func (s *SESClient) SendContactEmail(ctx context.Context, toEmail, fromEmail str
 	}
 
 	return htmlBuffer.String(), nil
-    }
+}
 
-    // Fallback HTML for when HTML template cannot be loaded
-    func (s *SESClient) formatFallbackHTMLEmail(data EmailData) string {
+// Fallback HTML for when HTML template cannot be loaded
+func (s *SESClient) formatFallbackHTMLEmail(data EmailData) string {
 	return fmt.Sprintf(`
             <!DOCTYPE html>
             <html>
@@ -217,4 +217,4 @@ func (s *SESClient) SendContactEmail(ctx context.Context, toEmail, fromEmail str
             </body>
             </html>
         `, data.Name, data.Email, data.Subject, data.Message, data.Timestamp)
-    }   
+}
